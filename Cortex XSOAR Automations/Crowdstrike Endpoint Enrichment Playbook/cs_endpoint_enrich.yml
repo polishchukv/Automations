@@ -1,0 +1,184 @@
+id: 20gdc190-b7d4-4892-9df8-f2be4fef8b4b
+version: 1
+name: FalconHost Endpoint Enrichment
+description: Enrich Endpoint Data using CrowdStrike FalconHost
+starttaskid: "0"
+tasks:
+  "0":
+    id: "0"
+    taskid: e051dfe4-eae1-49f8-93f4-fb9f2ed6abc2
+    type: start
+    task:
+      id: e051dfe4-eae1-49f8-93f4-fb9f2ed6abc2
+      version: -1
+      name: ""
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#none#':
+      - "1"
+    separatecontext: false
+    view: |- 
+      {
+        "position": {
+          "x": 50,
+          "y": 50
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+  "1":
+    id: "1"
+    taskid: 9c1d13d3-cc4f-4ed6-9c7d-8c456d6a7355
+    type: regular
+    task:
+      id: 9c1d13d3-cc4f-4ed6-9c7d-8c456d6a7355
+      version: -1
+      name: Retrieve Device Hostname
+      description: Retrieve CrowdStrike device id
+      script: FalconHost|||cs-device-search
+      type: regular
+      iscommand: true
+      brand: FalconHost
+    nexttasks:
+      '#none#':
+      - "2"
+    scriptarguments:
+      filter: {}
+      limit: {}
+      offset: {}
+      query:
+        simple: ${incident.dest}
+    separatecontext: false
+    view: |- 
+      {
+        "position": {
+          "x": 50,
+          "y": 200
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+  "2":
+    id: "2"
+    taskid: b993c9f9-993b-4ea9-945c-3dd9ea59311b
+    type: condition
+    task:
+      id: b993c9f9-993b-4ea9-945c-3dd9ea59311b
+      version: -1
+      name: Is device present?
+      description: Verify if any machine matches the hostname
+      type: condition
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#default#':
+      - "3"
+      "yes":
+      - "4"
+    separatecontext: false
+    conditions:
+    - label: "yes"
+      condition:
+      - - operator: isExists
+          left:
+            value:
+              simple: FalconHostDevices
+            iscontext: true
+    view: |- 
+      {
+        "position": {
+          "x": 50,
+          "y": 350
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+  "3":
+    id: "3"
+    taskid: 60b27104-b151-4162-809c-5d6e5783f596
+    type: title
+    task:
+      id: 60b27104-b151-4162-809c-5d6e5783f596
+      version: -1
+      name: Finished
+      type: title
+      iscommand: false
+      brand: ""
+    separatecontext: false
+    view: |- 
+      {
+        "position": {
+          "x": 50,
+          "y": 700
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+  "4":
+    id: "4"
+    taskid: 23b9424f-03d9-4524-9ab5-949781e97f33
+    type: regular
+    task:
+      id: 23b9424f-03d9-4524-9ab5-949781e97f33
+      version: -1
+      name: Retrieve host details from FalconHost
+      description: Retrieve host details from FalconHost
+      script: FalconHost|||cs-device-details
+      type: regular
+      iscommand: true
+      brand: FalconHost
+    nexttasks:
+      '#none#':
+      - "3"
+    scriptarguments:
+      extend-context: {}
+      ids:
+        simple: ${FalconHostDevices}
+    separatecontext: false
+    view: |- 
+      {
+        "position": {
+          "x": 300,
+          "y": 500
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+view: |- 
+  {
+    "linkLabelsPosition": {},
+    "paper": {
+      "dimensions": {
+        "height": 700,
+        "width": 600,
+        "x": 50,
+        "y": 50
+      }
+    }
+  }
+inputs:
+- key: Hostname
+  value:
+    simple: ${Endpoint.Hostname}
+  required: false
+  description: The hostname to enrich
+outputs:
+- contextPath: Endpoint.Hostname
+  description: The hostname to enrich
+  type: string
+- contextPath: Endpoint.OS
+  description: Endpoint OS
+  type: string
+- contextPath: Endpoint.IP
+  description: List of endpoint IP addresses
+- contextPath: Endpoint.MAC
+  description: List of endpoint MAC addresses
+- contextPath: Endpoint.Domain
+  description: Endpoint domain name
+  type: string
