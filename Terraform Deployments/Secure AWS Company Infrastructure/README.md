@@ -153,7 +153,3 @@ To destroy the infrastructure and clean up resources:
 ```sh
 terraform destroy
 ```
-
-## Conclusion
-
-This project demonstrates how to use Terraform to provision a secure, scalable AWS infrastructure. By following the steps outlined in this README, you can deploy and manage the infrastructure efficiently, leveraging Terraform's capabilities to automate the entire process. The inclusion of security best practices ensures that your resources are protected and managed in a compliant manner.
