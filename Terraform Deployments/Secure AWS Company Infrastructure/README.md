@@ -114,7 +114,7 @@ CloudTrail is used for monitoring and auditing API calls made within the AWS acc
 
 1. **Clone the Repository**:
    ```sh
-   git clone <repository-url>
+   git clone <https://www.github.com/polishchukv/Security-Automations/Terraform-Deployments/Secure-AWS-Company-Infrastructure>
    cd <repository-directory>
    ```
 
