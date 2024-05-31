@@ -27,6 +27,9 @@
 
 This project uses Terraform to provision a secure, scalable AWS infrastructure. The infrastructure includes a Virtual Private Cloud (VPC) with public and private subnets, EC2 instances for various purposes (including DMZ and internal servers), an optional RDS instance for database management, and enhanced security measures such as IAM roles, KMS encryption, and Secrets Manager for secure credential storage. CloudTrail is also enabled for auditing and monitoring.
 
+## Diagram
+![AWS Infrastructure Diagram](mockupAWSInfraDiagram.png)
+
 ## Files Overview
 
 ### main.tf
