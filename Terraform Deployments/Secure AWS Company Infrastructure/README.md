@@ -137,7 +137,7 @@ CloudTrail is used for monitoring and auditing API calls made within the AWS acc
 6. **Verify Deployment**:
     Check the AWS Management Console to ensure resource have been created as expected.
 
-### Outputs
+## Outputs
 
 After the deployment, Terraform will provide the following outputs:
 
@@ -147,13 +147,13 @@ After the deployment, Terraform will provide the following outputs:
 - **Internal Instance #3 Private IP**: The private IP address of Internal Server #3.
 - **Bastion Instance Public IP**: The public IP address of the Bastion Host.
 
-### Cleanup
+## Cleanup
 
 To destroy the infrastructure and clean up resources:
 ```sh
 terraform destroy
 ```
 
-### Conclusion
+## Conclusion
 
 This project demonstrates how to use Terraform to provision a secure, scalable AWS infrastructure. By following the steps outlined in this README, you can deploy and manage the infrastructure efficiently, leveraging Terraform's capabilities to automate the entire process. The inclusion of security best practices ensures that your resources are protected and managed in a compliant manner.
