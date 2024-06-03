@@ -1,2 +1,2 @@
 # Security-Automations-Runbooks
- Security-specifics scripts focused around commonly used toolkits.
+ Security-specific scripts focused around commonly used toolkits.
