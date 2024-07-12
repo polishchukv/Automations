@@ -139,7 +139,7 @@ def post_process_transcript(raw_transcript_file_name):
             messages = [
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant that summarizes long text transcripts and then provides key takeaway points. Your task is to read through any transcript passed in, and provide both a detailed summary of the contents as well as the key takeaway points. Provide as much detail as possible on the specifics of what was discussed. Treat this as a future reference point for individuals who were unable to attend the meeting."
+                    "content": "You are a helpful assistant that summarizes long text transcripts into very detailed notes (with specifics) and then provides key takeaway points."
                 },
                 {
                     "role": "user",
