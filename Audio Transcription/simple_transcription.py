@@ -6,6 +6,7 @@ from pydub import AudioSegment
 from dotenv import load_dotenv
 import openai as OpenAI
 import traceback
+from yt_dlp import YoutubeDL
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,6 +29,29 @@ chunk_duration_ms = 15 * 1024 * 1024 * 8 // (192 * 1024) * 1000  # 15 MB in dura
 if not os.path.exists(chunks_dir):
     logging.warning(f"Creating directory: {chunks_dir}")
     os.makedirs(chunks_dir)
+
+# Ensure output_dir_raw exists
+if not os.path.exists(output_dir_raw):
+    logging.warning(f"Creating directory: {output_dir_raw}")
+    os.makedirs(output_dir_raw)
+
+# Ensure output_dir_processed exists
+if not os.path.exists(output_dir_processed):
+    logging.warning(f"Creating directory: {output_dir_processed}")
+    os.makedirs(output_dir_processed)
+
+def download_audio(link):
+    logging.info(f"download_audio function called with link: {link}")
+    try:
+        with YoutubeDL({'extract_audio': True, 'format': 'bestaudio', 'outtmpl': '%(title)s.mp3'}) as video:
+            info_dict = video.extract_info(link, download = True)
+            video_title = info_dict['title']
+            print(video_title)
+            video.download(link)    
+            print("Successfully Downloaded Audio File")
+        logging.info(f"Audio downloaded successfully for {link}")
+    except Exception as e:
+        logging.error(f"Error downloading audio for {link}: {str(e)}\n{traceback.format_exc()}")
 
 def transcribe_audio(file_path):
     logging.info(f"transcribe_audio function called with file_path: {file_path}")
