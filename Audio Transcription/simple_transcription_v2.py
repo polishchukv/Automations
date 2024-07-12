@@ -49,6 +49,15 @@ def download_audio(link):
             video_title = info_dict['title']
             file_path = ydl.prepare_filename(info_dict)
             file_path = os.path.splitext(file_path)[0] + '.mp3'
+        
+        # Handle duplicate file names
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        extension = os.path.splitext(file_path)[1]
+        counter = 1
+        while os.path.exists(file_path):
+            file_path = os.path.join(audio_files_dir, f"{base_name}_{counter}{extension}")
+            counter += 1
+        
         logging.info(f"Audio downloaded successfully: {file_path}")
         return file_path
     except Exception as e:
@@ -91,6 +100,13 @@ def split_audio(file_path):
 
 def save_transcription(text, output_file_name):
     output_file_path = os.path.join(output_dir_raw, output_file_name)
+    counter = 1
+    while os.path.exists(output_file_path):
+        base_name = os.path.splitext(output_file_name)[0]
+        extension = os.path.splitext(output_file_name)[1]
+        output_file_path = os.path.join(output_dir_raw, f"{base_name}_{counter}{extension}")
+        counter += 1
+    
     try:
         with open(output_file_path, "w") as f:
             f.write(text)
@@ -100,6 +116,13 @@ def save_transcription(text, output_file_name):
 
 def save_processed_transcription(text, output_file_name):
     output_file_path = os.path.join(output_dir_processed, output_file_name)
+    counter = 1
+    while os.path.exists(output_file_path):
+        base_name = os.path.splitext(output_file_name)[0]
+        extension = os.path.splitext(output_file_name)[1]
+        output_file_path = os.path.join(output_dir_processed, f"{base_name}_{counter}{extension}")
+        counter += 1
+    
     try:
         with open(output_file_path, "w") as f:
             f.write(text)
@@ -125,6 +148,7 @@ def use_url():
         if file_path:
             selected_file_path.set(file_path)
             process_button.config(state="normal")
+            process_file()  # Automatically process the file after downloading
         else:
             messagebox.showerror("Error", "Failed to download audio from the provided URL.")
     else:
