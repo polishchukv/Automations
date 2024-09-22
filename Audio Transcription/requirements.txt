@@ -1,7 +1,0 @@
-logging
-tkinter
-pydub
-dotenv
-openai
-traceback
-yt_dlp
