@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Findings Outreach Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14181A;--ink-2:#4A5551;--ink-3:#7C8781;
+  --base:#DFE4E0;--panel:#FFFFFF;--line:#C8D0CA;--line-soft:#E4E9E5;
+  --petrol:#0B5C63;--petrol-lift:#0E7079;
+  --crit:#A61B4A;--high:#C67A00;--med:#5B7A8C;
+  --new:#8A3A1E;--rem:#1D6B4C;--oos:#8C9691;
+  --r:3px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--base);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+.eyebrow{font-family:"Archivo",sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.shell{display:flex;flex-direction:column;height:100vh}
+
+.topbar{display:flex;background:var(--ink);color:#EDF1EE;border-bottom:1px solid #000;flex:none}
+.brand{display:flex;align-items:center;gap:10px;padding:0 18px;height:52px;border-right:1px solid #2A3234}
+.brand .mark{width:20px;height:20px;border:1.5px solid #EDF1EE;border-radius:50%;display:grid;place-items:center}
+.brand .mark i{width:7px;height:7px;background:var(--crit);border-radius:50%;display:block}
+.brand h1{font-family:"Archivo",sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.stagebar{display:flex;align-items:center;padding:0 18px;flex:1}
+.stage{display:flex;align-items:center;gap:8px;padding-right:16px;color:#6E7A78}
+.stage .n{font-family:"IBM Plex Mono",monospace;font-size:10px;border:1px solid #39423F;border-radius:50%;width:18px;height:18px;display:grid;place-items:center}
+.stage span{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.stage.on{color:#EDF1EE}
+.stage.on .n{border-color:var(--petrol-lift);background:var(--petrol);color:#fff}
+.stage-sep{width:22px;height:1px;background:#39423F;margin-right:16px}
+.topmeta{display:flex;align-items:center;gap:20px;padding:0 20px;border-left:1px solid #2A3234}
+.topmeta div{text-align:right}
+.topmeta .v{font-family:"IBM Plex Mono",monospace;font-size:13px;color:#EDF1EE}
+.topmeta .k{font-family:"Archivo",sans-serif;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6E7A78}
+.topmeta .v.warn{color:#E9A93C}
+
+.body{display:flex;flex:1;min-height:0}
+.rail{width:230px;flex:none;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.rail-head{padding:14px 16px 10px;border-bottom:1px solid var(--line-soft)}
+.rail-list{overflow-y:auto;flex:1}
+.run{display:block;width:100%;text-align:left;padding:12px 16px;border-bottom:1px solid var(--line-soft);border-left:3px solid transparent;transition:background .12s ease}
+.run:hover{background:#F3F6F3}
+.run.sel{background:#F0F5F4;border-left-color:var(--petrol)}
+.run-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.run-id{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600}
+.run-count{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
+.run-date{font-size:11px;color:var(--ink-2);margin-top:2px}
+.run-crit{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:9.5px;padding:1px 5px;border:1px solid var(--line);border-radius:2px;color:var(--ink-2)}
+.latest{font-family:"Archivo",sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--petrol);color:#fff;padding:2px 5px;border-radius:2px}
+
+.center{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--line);padding:0 18px;gap:4px;flex:none}
+.tab{padding:14px 14px 11px;border-bottom:2px solid transparent;font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tab .badge{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:0;background:var(--base);padding:1px 5px;border-radius:2px;margin-left:6px;color:var(--ink-2)}
+.tab .badge.hot{background:#FBF1DD;color:#8A5600}
+
+.filters{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:11px 18px;background:#F4F7F4;border-bottom:1px solid var(--line);flex:none}
+.fgroup{display:flex;align-items:center;gap:7px}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:3px 9px;border:1px solid var(--line);background:var(--panel);border-radius:2px;color:var(--ink-2);display:flex;align-items:center;gap:6px;transition:all .12s ease}
+.chip:hover{border-color:var(--ink-3)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip .dot{width:6px;height:6px;border-radius:50%;display:block}
+.chip .ct{opacity:.6;font-size:9.5px}
+.search{margin-left:auto;display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:4px 9px}
+.search input{border:none;outline:none;background:none;font:inherit;font-size:12px;width:150px}
+
+.pool-head,.row{display:grid;grid-template-columns:34px 1fr 128px 88px 152px 96px;gap:12px;align-items:center}
+.pool-head{padding:8px 18px;background:var(--base);border-bottom:1px solid var(--line);flex:none}
+.scroll{overflow-y:auto;flex:1;background:var(--panel)}
+.row{padding:11px 18px;border-bottom:1px solid var(--line-soft);cursor:pointer;border-left:3px solid transparent;transition:background .1s ease}
+.row:hover{background:#F6F9F6}
+.row.insp{background:#F0F5F4;border-left-color:var(--ink)}
+.row.staged{border-left-color:var(--petrol)}
+.cb{width:15px;height:15px;border:1.5px solid var(--ink-3);border-radius:2px;display:grid;place-items:center;background:var(--panel);flex:none}
+.cb.on{background:var(--petrol);border-color:var(--petrol)}
+.cb svg{display:none}
+.cb.on svg{display:block}
+.tname{font-weight:600;font-size:13.5px;letter-spacing:-.005em}
+.towner{font-size:11px;color:var(--ink-3);margin-top:1px}
+.spine{display:flex;flex-direction:column;gap:4px}
+.spine-bar{display:flex;height:7px;gap:1.5px;width:100%}
+.spine-bar i{display:block;border-radius:1px}
+.spine-nums{display:flex;gap:9px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-2)}
+.sv-crit{color:var(--crit)}.sv-high{color:var(--high)}.sv-med{color:var(--med)}
+.expo{display:flex;gap:5px;font-family:"IBM Plex Mono",monospace;font-size:10px}
+.expo span{padding:1.5px 5px;border-radius:2px;border:1px solid var(--line);color:var(--ink-2)}
+.expo span.ext{border-color:#D9BBBB;background:#FBF2F2;color:#8C3040}
+.status{display:flex;align-items:center;gap:6px;font-size:11.5px}
+.status .pip{width:7px;height:7px;border-radius:50%;flex:none}
+.st-none{color:var(--ink-3)}.st-none .pip{background:var(--line)}
+.st-ready{color:#8A5600;font-weight:600}.st-ready .pip{background:var(--high)}
+.st-awaiting{color:var(--petrol);font-weight:600}.st-awaiting .pip{background:var(--petrol)}
+.st-due{color:var(--crit);font-weight:600}.st-due .pip{background:var(--crit)}
+.st-archived{color:var(--ink-3)}.st-archived .pip{background:#B9C4BD;box-shadow:inset 0 0 0 1.5px #fff}
+.lastc{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);text-align:right}
+.cid{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--ink-3);margin-top:2px}
+
+.inspector{width:364px;flex:none;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.insp-empty{padding:40px 26px;color:var(--ink-3);font-size:12.5px}
+.insp-empty .eyebrow{margin-bottom:10px;display:block}
+.insp-head{padding:16px 18px 14px;border-bottom:1px solid var(--line-soft)}
+.insp-head h2{font-family:"Archivo",sans-serif;font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.insp-head .sub{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.insp-body{overflow-y:auto;flex:1}
+.sect{padding:14px 18px;border-bottom:1px solid var(--line-soft)}
+.sect > .eyebrow{margin-bottom:10px;display:block}
+.kv{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;gap:12px}
+.kv .k{color:var(--ink-3)}
+.kv .v{font-family:"IBM Plex Mono",monospace;text-align:right}
+.insp-foot{padding:12px 18px;border-top:1px solid var(--line);flex:none;display:flex;gap:8px}
+.btn{font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:9px 14px;border-radius:2px;border:1px solid var(--ink);transition:all .12s ease;white-space:nowrap}
+.btn-p{background:var(--ink);color:#fff}.btn-p:hover{background:#000}
+.btn-a{background:var(--petrol);border-color:var(--petrol);color:#fff}.btn-a:hover{background:var(--petrol-lift)}
+.btn-w{background:#B87A0B;border-color:#B87A0B;color:#fff}.btn-w:hover{background:#9E6708}
+.btn-g{background:transparent;border-color:var(--line);color:var(--ink-2)}.btn-g:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-s{padding:6px 10px;font-size:9.5px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ledger — the signature element */
+.ledger{position:relative;padding-left:0}
+.lrow{display:grid;grid-template-columns:20px 1fr;gap:11px;position:relative}
+.lrow::before{content:"";position:absolute;left:9.5px;top:20px;bottom:-2px;width:1px;background:var(--line)}
+.lrow:last-child::before{display:none}
+.lnode{width:20px;height:20px;border-radius:50%;background:var(--panel);border:2px solid var(--petrol);display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--petrol);font-weight:600;z-index:1}
+.lnode.unsent{border-color:#C67A00;color:#8A5600;background:#FFFCF5}
+.lnode.base{background:var(--petrol);color:#fff}
+.lcard{border:1px solid var(--line-soft);border-radius:2px;margin-bottom:9px;background:var(--panel);overflow:hidden}
+.lcard.unsent{border-color:#E3C892;background:#FFFCF5}
+.lc-h{display:flex;align-items:baseline;gap:8px;padding:9px 11px 6px}
+.lc-h .ttl{flex:1;font-size:12.5px;font-weight:600}
+.lc-h .dt{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-3)}
+/* delta bar */
+.delta{display:flex;height:6px;gap:1.5px;margin:2px 11px 8px}
+.delta i{display:block;border-radius:1px}
+.dlegend{display:flex;flex-wrap:wrap;gap:3px;padding:0 11px 9px}
+.dl{display:flex;align-items:center;gap:5px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-2);border:1px solid var(--line-soft);border-radius:2px;padding:2px 6px}
+.dl i{width:6px;height:6px;border-radius:1px;display:block}
+.lc-files{display:flex;gap:6px;flex-wrap:wrap;padding:0 11px 9px}
+.file{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--petrol);border:1px solid var(--line);border-radius:2px;padding:4px 7px;background:#F7FAFA}
+.file:hover{border-color:var(--petrol);background:#EFF6F6}
+.lc-act{padding:0 11px 10px;display:flex;gap:7px;align-items:center}
+.sent-mark{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--petrol);font-weight:500}
+.unsent-mark{display:flex;align-items:center;gap:5px;font-size:11px;color:#8A5600;font-weight:600}
+
+.state-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:2px;overflow:hidden}
+.sc{background:var(--panel);padding:9px 11px}
+.sc .n{font-family:"Archivo",sans-serif;font-size:19px;font-weight:800;line-height:1.1}
+.sc .l{font-size:10.5px;color:var(--ink-3);margin-top:1px;line-height:1.3}
+.sc.a .n{color:var(--crit)}.sc.n .n{color:var(--new)}.sc.r .n{color:var(--rem)}.sc.o .n{color:var(--oos)}
+
+.baseline{background:#F4F7F6;border:1px solid var(--line-soft);border-left:3px solid var(--petrol);border-radius:2px;padding:11px 12px;margin-bottom:12px}
+.baseline .bh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.baseline .bh .id{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600}
+.baseline .bh .lk{font-family:"Archivo",sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--petrol)}
+.crit-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+
+.scrim{position:fixed;inset:0;background:rgba(10,14,15,.45);display:none;z-index:40}
+.scrim.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(760px,95vw);background:var(--base);z-index:50;transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-14px 0 40px rgba(0,0,0,.18)}
+.drawer.on{transform:none}
+.dr-head{background:var(--ink);color:#EDF1EE;padding:18px 22px;flex:none;display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.dr-head h2{font-family:"Archivo",sans-serif;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.dr-head p{font-size:12px;color:#9AA5A0;margin-top:4px}
+.dr-body{overflow-y:auto;flex:1;padding:16px 22px 26px}
+.dr-foot{background:var(--panel);border-top:1px solid var(--line);padding:14px 22px;flex:none;display:flex;align-items:center;gap:14px}
+.dr-foot .sum{font-size:12px;color:var(--ink-2);flex:1}
+.dr-foot .sum b{font-family:"IBM Plex Mono",monospace;color:var(--ink)}
+.dr-note{background:#EAF0EF;border:1px solid var(--line);border-radius:2px;padding:10px 13px;font-size:12px;color:var(--ink-2);margin-bottom:14px;display:flex;gap:9px}
+.dr-note svg{flex:none;margin-top:2px}
+.cfg{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px}
+.cfg.fu{border-left:3px solid #C67A00}
+.cfg.new{border-left:3px solid var(--petrol)}
+.cfg-h{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+.cfg-h .chev{color:var(--ink-3);font-size:11px;transition:transform .15s ease}
+.cfg.open .cfg-h .chev{transform:rotate(90deg)}
+.cfg-h .nm{font-weight:600;font-size:13.5px;flex:1}
+.cfg-h .ct{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
+.pill{font-family:"Archivo",sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 7px;border-radius:2px}
+.pill-new{background:#E7F0F0;color:var(--petrol)}
+.pill-fu{background:#FBF1DD;color:#8A5600}
+.pill-edit{background:var(--base);color:var(--ink-2)}
+.cfg-b{display:none;border-top:1px solid var(--line-soft);padding:14px}
+.cfg.open .cfg-b{display:block}
+.crit-grid{display:flex;gap:24px;flex-wrap:wrap}
+.opt{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;padding:3px 0}
+.subjline{margin-top:13px;padding-top:12px;border-top:1px dashed var(--line);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-2);line-height:1.7}
+.subjline b{color:var(--ink);font-weight:600}
+
+.viewer{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%);width:min(880px,95vw);max-height:88vh;background:var(--panel);z-index:60;border-radius:var(--r);display:none;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.3);opacity:0;transition:opacity .18s ease,transform .18s ease}
+.viewer.on{display:flex;opacity:1;transform:translate(-50%,-50%)}
+.vscrim{position:fixed;inset:0;background:rgba(10,14,15,.5);display:none;z-index:55}
+.vscrim.on{display:block}
+.v-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex:none}
+.v-head .fn{font-family:"IBM Plex Mono",monospace;font-size:12px;flex:1}
+.v-tabs{display:flex;gap:2px;padding:0 18px;border-bottom:1px solid var(--line);flex:none;background:#F4F7F4}
+.v-tab{padding:10px 12px 8px;border-bottom:2px solid transparent;font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.v-tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.v-body{overflow:auto;flex:1;padding:18px 22px 24px}
+.mailhead{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-2);padding-bottom:12px;border-bottom:1px dashed var(--line);line-height:1.9}
+.mailhead b{color:var(--ink);font-weight:600}
+.mailbody{font-size:13px;line-height:1.65;padding:14px 0;white-space:pre-line;color:#232A2B}
+table.sheet{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:11px}
+table.sheet th{background:#EDF1EE;text-align:left;padding:7px 9px;border:1px solid var(--line);font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);position:sticky;top:0}
+table.sheet td{padding:6px 9px;border:1px solid var(--line-soft);white-space:nowrap}
+table.sheet tr:nth-child(even) td{background:#FAFCFA}
+.stat{font-weight:600;font-size:10px;padding:2px 6px;border-radius:2px;letter-spacing:.03em;text-transform:uppercase;display:inline-block}
+.s-active{background:#FBEFF2;color:var(--crit)}
+.s-new{background:#FBEFE8;color:var(--new)}
+.s-conf{background:#E8F3EC;color:var(--rem)}
+.s-assum{background:#EFF4F1;color:var(--rem)}
+.s-oos{background:#EFF1F0;color:var(--oos)}
+.sheet-note{font-size:11.5px;color:var(--ink-3);margin-top:11px;line-height:1.6}
+.vfilter{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+
+.tray{flex:none;background:var(--ink);color:#EDF1EE;border-top:2px solid var(--petrol);display:flex;align-items:center;gap:16px;padding:0 18px;min-height:64px}
+.tray.empty{border-top-color:#2A3234}
+.tray-label{display:flex;flex-direction:column;gap:2px;flex:none;padding:10px 0}
+.tray-label .n{font-family:"Archivo",sans-serif;font-size:22px;font-weight:800;line-height:1}
+.tray-label .l{font-family:"Archivo",sans-serif;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6E7A78}
+.tray-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;padding:12px 0;align-content:center;max-height:64px;overflow-y:auto}
+.tchip{display:flex;align-items:center;gap:7px;background:#222A2C;border:1px solid #39423F;border-radius:2px;padding:4px 6px 4px 9px;font-size:11.5px;animation:pop .16s ease}
+.tchip .sv{width:5px;height:14px;border-radius:1px;flex:none}
+.tchip .x{color:#6E7A78;font-size:14px;line-height:1;padding:0 2px}
+.tchip .x:hover{color:#fff}
+.tchip.fu{border-color:#6B5200;background:#2A2416}
+@keyframes pop{from{opacity:0;transform:translateY(4px) scale(.96)}to{opacity:1;transform:none}}
+.tray-hint{color:#6E7A78;font-size:12px;flex:1;padding:12px 0}
+.tray-act{display:flex;gap:8px;flex:none}
+.tray-act .btn-g{border-color:#39423F;color:#9AA5A0}
+.tray-act .btn-g:hover{color:#fff;border-color:#6E7A78}
+
+.camp-head,.camp-row{display:grid;grid-template-columns:1fr 126px 1fr 176px 100px;gap:14px;padding:11px 18px;align-items:center}
+.camp-head{background:var(--base);border-bottom:1px solid var(--line);padding:8px 18px}
+.camp-row{border-bottom:1px solid var(--line-soft);background:var(--panel);cursor:pointer;border-left:3px solid transparent}
+.camp-row:hover{background:#F6F9F6}
+.camp-row.insp{background:#F0F5F4;border-left-color:var(--ink)}
+.camp-row.arch{opacity:.62}
+.last-out{font-size:12px}
+.last-out .w{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-3)}
+.mini{display:flex;height:6px;gap:1.5px;margin-top:5px}
+.mini i{display:block;border-radius:1px}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#EDF1EE;padding:13px 20px;border-radius:3px;z-index:70;display:flex;align-items:center;gap:11px;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:70vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast .ok{width:16px;height:16px;border-radius:50%;background:var(--petrol);display:grid;place-items:center;flex:none}
+.mob-close{display:none}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:1280px){.inspector{width:320px}.rail{width:196px}}
+
+/* ================= mobile ================= */
+@media (max-width:860px){
+  .shell{height:100dvh}
+  body{font-size:13.5px}
+
+  /* topbar collapses to brand + scrolling stats */
+  .brand{height:46px;padding:0 12px;gap:8px}
+  .brand h1{font-size:11px;letter-spacing:.1em}
+  .stagebar{display:none}
+  .topmeta{gap:16px;padding:0 12px;overflow-x:auto;flex:1;justify-content:flex-end;-webkit-overflow-scrolling:touch}
+  .topmeta::-webkit-scrollbar{display:none}
+  .topmeta div{flex:none}
+  .topmeta .v{font-size:12px}
+  .topmeta .k{font-size:8px;letter-spacing:.1em}
+
+  /* pull history becomes a horizontal strip */
+  .body{flex-direction:column}
+  .rail{width:auto;flex:none;border-right:none;border-bottom:1px solid var(--line)}
+  .rail-head{display:none}
+  .rail-list{display:flex;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+  .rail-list::-webkit-scrollbar{display:none}
+  .run{min-width:158px;flex:none;padding:9px 13px;border-bottom:none;border-right:1px solid var(--line-soft);border-left:none;border-top:3px solid transparent}
+  .run.sel{border-left-color:transparent;border-top-color:var(--petrol)}
+  .run-crit{gap:3px}
+  .run-crit .tag{font-size:9px;padding:0 4px}
+
+  /* filters: search on its own line, chips scroll */
+  .filters{flex-wrap:wrap;gap:9px 12px;padding:10px 12px}
+  .search{order:-1;margin-left:0;width:100%}
+  .search input{width:100%;flex:1}
+  .fgroup{flex-wrap:nowrap;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+  .fgroup::-webkit-scrollbar{display:none}
+  .fgroup .chip{flex:none}
+  .filters .dl{display:none}
+
+  /* pool rows reflow to two lines */
+  .pool-head{display:none}
+  .row{display:flex;flex-wrap:wrap;gap:7px 10px;padding:12px 14px}
+  .row > div:nth-child(2){flex:1 1 auto;min-width:0}
+  .row .tname{font-size:14px}
+  .row > div:nth-child(5){flex:none;margin-left:auto;text-align:right}
+  .row .cid{font-size:9px}
+  .row .spine{flex:1 1 100%;order:5;gap:3px}
+  .row .expo{order:6}
+  .row .lastc{order:7;margin-left:auto}
+
+  /* campaign rows reflow */
+  .camp-head{display:none}
+  .camp-row{display:flex;flex-wrap:wrap;gap:7px 10px;padding:12px 14px}
+  .camp-row > div:nth-child(1){flex:1 1 auto;min-width:0}
+  .camp-row > div:nth-child(2){flex:none;margin-left:auto}
+  .camp-row > div:nth-child(3){flex:1 1 100%;order:5}
+  .camp-row > div:nth-child(4){flex:1 1 100%;order:6}
+  .camp-row > div:nth-child(5){flex:1 1 100%;order:7;text-align:left;font-size:11px}
+
+  /* inspector becomes a full-screen panel */
+  .inspector{position:fixed;inset:0;width:auto;z-index:45;display:none;border-left:none}
+  body.insp-open .inspector{display:flex;animation:slideup .2s ease}
+  @keyframes slideup{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+  .insp-head{padding:14px 56px 12px 16px}
+  .insp-head h2{font-size:19px}
+  .sect{padding:14px 16px}
+  .mob-close{display:none;position:fixed;top:9px;right:10px;z-index:46;
+    font-family:"Archivo",sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--ink);color:#EDF1EE;border-radius:3px;padding:9px 12px;align-items:center;gap:5px;
+    box-shadow:0 3px 14px rgba(0,0,0,.22)}
+  body.insp-open .mob-close{display:flex}
+  .insp-foot{padding:11px 14px;padding-bottom:max(11px,env(safe-area-inset-bottom))}
+  .insp-foot .btn{flex:1;padding:12px 10px}
+  .state-grid .sc{padding:8px 10px}
+  .state-grid .sc .n{font-size:17px}
+
+  /* ledger tightens */
+  .lrow{grid-template-columns:18px 1fr;gap:9px}
+  .lnode{width:18px;height:18px;font-size:8.5px}
+  .lrow::before{left:8.5px}
+  .dl{font-size:9.5px;padding:2px 5px}
+  .file{padding:6px 9px}
+
+  /* tray */
+  .tray{min-height:58px;gap:11px;padding:0 12px;padding-bottom:env(safe-area-inset-bottom)}
+  .tray-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tray-chips::-webkit-scrollbar{display:none}
+  .tchip{flex:none}
+  .tray-label .n{font-size:19px}
+  .tray-hint{font-size:11.5px;line-height:1.35}
+  .tray-act .btn{padding:11px 12px;font-size:9.5px}
+
+  /* drawer + viewer go full screen */
+  .drawer{width:100vw}
+  .dr-head{padding:14px 16px}
+  .dr-head h2{font-size:17px}
+  .dr-body{padding:14px 14px 22px}
+  .dr-foot{flex-wrap:wrap;gap:9px;padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .dr-foot .sum{flex:1 1 100%;font-size:11.5px}
+  .dr-foot .btn{flex:1}
+  .crit-grid{flex-direction:column;gap:14px}
+  .cfg-h{flex-wrap:wrap;gap:7px;padding:11px 12px}
+  .cfg-h .nm{flex:1 1 auto}
+  .cfg-h .pill{order:5}
+  .subjline{font-size:10.5px;word-break:break-word}
+
+  .viewer{top:0;left:0;transform:none;width:100vw;max-height:none;height:100dvh;border-radius:0}
+  .viewer.on{transform:none}
+  .v-head{padding:12px 14px}
+  .v-head .fn{font-size:11px;word-break:break-all}
+  .v-body{padding:14px 14px 20px}
+  .mailhead{font-size:11px;line-height:1.8}
+  .mailbody{font-size:13.5px}
+  .vfilter{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px}
+  .vfilter::-webkit-scrollbar{display:none}
+  .vfilter .chip{flex:none}
+  table.sheet{font-size:10.5px}
+  table.sheet th,table.sheet td{padding:6px 7px}
+
+  .toast{max-width:calc(100vw - 28px);bottom:calc(70px + env(safe-area-inset-bottom));font-size:12.5px}
+}
+
+@media (max-width:520px){
+  .brand h1{display:none}
+  .topmeta{gap:13px}
+  .tray-chips{display:none}
+  .tray-hint{display:none}
+  .tray-act{flex:1}
+  .tray-act .btn{flex:1}
+  .row .expo{display:none}
+  .run{min-width:142px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="mark"><i></i></div><h1>Findings Outreach</h1></div>
+    <div class="stagebar">
+      <div class="stage on"><div class="n">1</div><span>Pull</span></div><div class="stage-sep"></div>
+      <div class="stage on"><div class="n">2</div><span>Team pool</span></div><div class="stage-sep"></div>
+      <div class="stage" id="stg3"><div class="n">3</div><span>Configure</span></div><div class="stage-sep"></div>
+      <div class="stage" id="stg4"><div class="n">4</div><span>Campaigns</span></div>
+    </div>
+    <div class="topmeta">
+      <div><div class="v mono" id="mTeams">—</div><div class="k">In pool</div></div>
+      <div><div class="v mono" id="mActive">—</div><div class="k">Running</div></div>
+      <div><div class="v mono warn" id="mReady">—</div><div class="k">Ready to send</div></div>
+      <div><div class="v mono" id="mDue">—</div><div class="k">Follow-up due</div></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="rail">
+      <div class="rail-head"><span class="eyebrow">Pull history</span></div>
+      <div class="rail-list" id="runList"></div>
+    </aside>
+
+    <main class="center">
+      <div class="tabs">
+        <button class="tab on" data-tab="pool">Team pool<span class="badge mono" id="tabPoolN">0</span></button>
+        <button class="tab" data-tab="camp">Campaigns<span class="badge mono" id="tabCampN">0</span></button>
+      </div>
+
+      <div id="viewPool" style="display:flex;flex-direction:column;flex:1;min-height:0">
+        <div class="filters">
+          <div class="fgroup"><span class="eyebrow">Severity</span>
+            <button class="chip on" data-sev="crit"><i class="dot" style="background:var(--crit)"></i>Critical<span class="ct mono" id="cCrit"></span></button>
+            <button class="chip on" data-sev="high"><i class="dot" style="background:var(--high)"></i>High<span class="ct mono" id="cHigh"></span></button>
+            <button class="chip" data-sev="med"><i class="dot" style="background:var(--med)"></i>Medium<span class="ct mono" id="cMed"></span></button>
+          </div>
+          <div class="fgroup"><span class="eyebrow">Exposure</span>
+            <button class="chip on" data-exp="ext">External</button>
+            <button class="chip on" data-exp="int">Internal</button>
+          </div>
+          <div class="fgroup"><span class="eyebrow">Show</span>
+            <button class="chip" data-only="nocamp">No campaign</button>
+            <button class="chip" data-only="due">Follow-up due</button>
+          </div>
+          <div class="search">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7C8781" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+            <input id="q" placeholder="Filter teams" aria-label="Filter teams">
+          </div>
+        </div>
+        <div class="pool-head">
+          <button class="cb" id="cbAll" aria-label="Select all"><svg width="9" height="7" viewBox="0 0 10 8" fill="none" stroke="#fff" stroke-width="2"><path d="M1 4l2.5 2.5L9 1"/></svg></button>
+          <span class="eyebrow">Team</span><span class="eyebrow">Open findings</span>
+          <span class="eyebrow">Exposure</span><span class="eyebrow">Campaign</span>
+          <span class="eyebrow" style="text-align:right">Last outreach</span>
+        </div>
+        <div class="scroll" id="poolRows"></div>
+      </div>
+
+      <div id="viewCamp" style="display:none;flex-direction:column;flex:1;min-height:0">
+        <div class="filters" style="background:#F4F7F4">
+          <div class="fgroup"><span class="eyebrow">Show</span>
+            <button class="chip on" data-cf="running">Running</button>
+            <button class="chip" data-cf="archived">Archived</button>
+          </div>
+          <div class="fgroup" style="margin-left:auto">
+            <span class="dl"><i style="background:var(--crit)"></i>Still active</span>
+            <span class="dl"><i style="background:var(--new)"></i>New in scope</span>
+            <span class="dl"><i style="background:var(--rem)"></i>Confirmed rem.</span>
+            <span class="dl"><i style="background:#8FB6A4"></i>Assumed rem.</span>
+            <span class="dl"><i style="background:var(--oos)"></i>Out of scope</span>
+          </div>
+        </div>
+        <div class="camp-head">
+          <span class="eyebrow">Campaign</span><span class="eyebrow">Status</span>
+          <span class="eyebrow">Last outreach</span><span class="eyebrow">Ledger to date</span>
+          <span class="eyebrow" style="text-align:right">Cycle</span>
+        </div>
+        <div class="scroll" id="campRows"></div>
+      </div>
+    </main>
+
+    <aside class="inspector" id="inspector"></aside>
+  </div>
+
+  <div class="tray empty" id="tray"></div>
+</div>
+
+<button class="mob-close" id="mobClose" aria-label="Back to list">
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7.5 1.5L3 6l4.5 4.5"/></svg>Back</button>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dr-head">
+    <div><h2 id="drTitle">Configure campaigns</h2><p id="drSub"></p></div>
+    <button class="btn btn-g" style="border-color:#39423F;color:#9AA5A0" id="drClose">Close</button>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-foot">
+    <div class="sum" id="drSum"></div>
+    <button class="btn btn-g" id="drCancel">Cancel</button>
+    <button class="btn btn-a" id="drSend">Lock in &amp; generate</button>
+  </div>
+</aside>
+
+<div class="vscrim" id="vscrim"></div>
+<div class="viewer" id="viewer" role="dialog" aria-modal="true">
+  <div class="v-head">
+    <svg width="13" height="15" viewBox="0 0 10 12" fill="none" stroke="var(--ink-3)" stroke-width="1.4"><path d="M1 3.5V10a1.5 1.5 0 003 0V2.5a2.5 2.5 0 00-5 0V10"/></svg>
+    <span class="fn" id="vFile"></span>
+    <button class="btn btn-g btn-s" id="vClose">Close</button>
+  </div>
+  <div class="v-tabs">
+    <button class="v-tab on" data-vtab="email">Email</button>
+    <button class="v-tab" data-vtab="sheet">Attachment</button>
+  </div>
+  <div class="v-body" id="vBody"></div>
+</div>
+
+<div class="toast" id="toast"><div class="ok"><svg width="9" height="7" viewBox="0 0 10 8" fill="none" stroke="#fff" stroke-width="2"><path d="M1 4l2.5 2.5L9 1"/></svg></div><span id="toastMsg"></span></div>
+
+<script>
+/* ================= data ================= */
+const TEAMS={
+  pay:{name:"Payments Platform",owner:"a.rivera@corp",findings:{crit:6,high:14,med:9},ext:11,int:18},
+  iam:{name:"Identity & Access",owner:"m.chen@corp",findings:{crit:4,high:8,med:12},ext:5,int:19},
+  edge:{name:"Edge Networking",owner:"t.oduya@corp",findings:{crit:9,high:21,med:6},ext:24,int:12},
+  lake:{name:"Data Lake",owner:"s.kaur@corp",findings:{crit:2,high:11,med:23},ext:3,int:33},
+  mob:{name:"Mobile Client",owner:"j.lindqvist@corp",findings:{crit:1,high:6,med:14},ext:9,int:12},
+  bill:{name:"Billing Core",owner:"d.ferreira@corp",findings:{crit:5,high:9,med:7},ext:8,int:13},
+  srch:{name:"Search Infrastructure",owner:"n.abadi@corp",findings:{crit:3,high:17,med:19},ext:6,int:33},
+  papi:{name:"Partner API",owner:"r.whitfield@corp",findings:{crit:7,high:12,med:4},ext:19,int:4},
+  obs:{name:"Observability",owner:"k.tanaka@corp",findings:{crit:0,high:5,med:16},ext:2,int:19},
+  chk:{name:"Checkout Web",owner:"l.moreau@corp",findings:{crit:8,high:10,med:11},ext:17,int:12},
+  ware:{name:"Warehouse Systems",owner:"p.novak@corp",findings:{crit:1,high:4,med:18},ext:1,int:22},
+  hr:{name:"People Tools",owner:"e.osei@corp",findings:{crit:0,high:3,med:9},ext:2,int:10}
+};
+const RUNS=[
+  {id:"PULL-0418",date:"Aug 17, 2026 · 09:12",sev:{crit:true,high:true,med:false},exp:{ext:true,int:true},latest:true,
+   teams:["edge","chk","papi","pay","bill","iam","srch","lake","mob","obs","ware","hr"]},
+  {id:"PULL-0417",date:"Aug 10, 2026 · 08:40",sev:{crit:true,high:false,med:false},exp:{ext:true,int:false},
+   teams:["edge","chk","papi","pay","bill","iam"]},
+  {id:"PULL-0416",date:"Jul 27, 2026 · 14:02",sev:{crit:true,high:true,med:true},exp:{ext:false,int:true},
+   teams:["lake","srch","obs","ware","iam","mob","hr","pay","bill"]},
+  {id:"PULL-0415",date:"Jul 13, 2026 · 09:05",sev:{crit:true,high:true,med:false},exp:{ext:true,int:false},
+   teams:["edge","papi","chk","pay","mob"]}
+];
+const TODAY="Aug 17";
+const ST={ACTIVE:"Still active",NEW:"New in scope",CONF:"Confirmed remediated",ASSUM:"Assumed remediated",OOS:"Out of scope"};
+const ST_CLS={ACTIVE:"s-active",NEW:"s-new",CONF:"s-conf",ASSUM:"s-assum",OOS:"s-oos"};
+const ST_COL={ACTIVE:"var(--crit)",NEW:"var(--new)",CONF:"var(--rem)",ASSUM:"#8FB6A4",OOS:"var(--oos)"};
+
+const VULNS=["Outdated OpenSSL (CVE-2026-3312)","Publicly writable object store","Missing auth on internal endpoint","Unpatched deserialization flaw","Expired TLS certificate","Default credentials on admin console","SQL injection in export handler","Container running as root","Exposed .git directory","Missing rate limit on login","Hardcoded API key in image","Unrestricted CORS policy","Legacy TLS 1.0 enabled","Stale IAM role with wildcard"];
+const NODES=["api-gw","auth-svc","worker","edge-lb","db-primary","cache","admin-ui","batch-runner","queue","report-svc"];
+function rng(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+  return()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function critText(c){
+  const s=[c.sev.crit&&"Critical",c.sev.high&&"High",c.sev.med&&"Medium"].filter(Boolean);
+  const e=[c.exp.ext&&"External",c.exp.int&&"Internal"].filter(Boolean);
+  return{sev:s,exp:e,label:s.join(" + ")+" · "+e.join(" + ")};
+}
+function counted(k,c){const f=TEAMS[k].findings,s=c?c.sev:sev;return (s.crit?f.crit:0)+(s.high?f.high:0)+(s.med?f.med:0)}
+
+let SEQ=4000;
+function mkFinding(team,crit,r,cycle){
+  const t=TEAMS[team],ct=critText(crit);
+  const ext=r()<t.ext/(t.ext+t.int)?crit.exp.ext:false;
+  const sv=ct.sev[Math.floor(r()*ct.sev.length)];
+  return{id:"FND-"+(++SEQ),sev:sv,
+    asset:slug(t.name).split("-")[0]+"-"+NODES[Math.floor(r()*NODES.length)]+"-"+String(Math.floor(r()*40)+1).padStart(2,"0"),
+    title:VULNS[Math.floor(r()*VULNS.length)],exp:(ext||!crit.exp.int)?"External":"Internal",
+    seen:["Jun 04","Jun 21","Jul 02","Jul 15","Jul 28","Aug 03","Aug 11","Aug 16"][Math.floor(r()*8)],
+    due:sv==="Critical"?"Sep 01":sv==="High"?"Sep 16":"Oct 15",
+    status:"ACTIVE",cycle};
+}
+
+/* ================= campaign engine ================= */
+let CID=6;
+function newCid(){return "CMP-"+String(++CID).padStart(4,"0")}
+function tally(c){
+  const t={ACTIVE:0,NEW:0,CONF:0,ASSUM:0,OOS:0};
+  c.findings.forEach(f=>t[f.status]++);
+  return t;
+}
+function actionable(c){const t=tally(c);return t.ACTIVE+t.NEW}
+
+function startCampaign(team,from,crit,date){
+  const r=rng(team+from+date),n=counted(team,crit),f=[];
+  for(let i=0;i<n;i++)f.push(mkFinding(team,crit,r,1));
+  const c={id:newCid(),team,from,crit,locked:date,status:"ready",cycle:1,findings:f,outreach:[]};
+  c.outreach.push({seq:1,kind:"baseline",gen:date,sent:null,cycle:1,
+    counts:{ACTIVE:0,NEW:n,CONF:0,ASSUM:0,OOS:0},sent_count:n,
+    file:`${slug(TEAMS[team].name)}_baseline_c1.xlsx`});
+  return c;
+}
+/* one reconciliation cycle: current scan diffed against campaign state */
+function advance(c,date){
+  const r=rng(c.id+"|"+c.cycle),prev=tally(c);
+  c.cycle++;
+  // last cycle's new findings become part of the standing set
+  c.findings.forEach(f=>{if(f.status==="NEW")f.status="ACTIVE"});
+  const active=c.findings.filter(f=>f.status==="ACTIVE");
+  const counts={ACTIVE:0,NEW:0,CONF:0,ASSUM:0,OOS:0};
+  active.forEach(f=>{
+    const d=r();
+    if(d<.20){f.status="CONF";f.resolved=date;counts.CONF++}
+    else if(d<.31){f.status="ASSUM";f.resolved=date;counts.ASSUM++}
+    else if(d<.36){f.status="OOS";f.resolved=date;counts.OOS++}
+    else counts.ACTIVE++;
+  });
+  const nNew=Math.max(0,Math.round(r()*4+(active.length>14?2:0)));
+  for(let i=0;i<nNew;i++){const f=mkFinding(c.team,c.crit,r,c.cycle);f.status="NEW";c.findings.push(f);counts.NEW++}
+  c.outreach.push({seq:c.outreach.length+1,kind:"followup",gen:date,sent:null,cycle:c.cycle,
+    counts,sent_count:counts.ACTIVE+counts.NEW,
+    file:`${slug(TEAMS[c.team].name)}_followup_c${c.cycle}.xlsx`});
+  c.status="ready";
+  return counts;
+}
+
+/* seeded history */
+let CAMPAIGNS=[];
+(function seed(){
+  const specs=[
+    {team:"edge",from:"PULL-0415",crit:{sev:{crit:true,high:true,med:false},exp:{ext:true,int:true}},d:["Jul 29","Aug 12"],status:"due"},
+    {team:"chk",from:"PULL-0417",crit:{sev:{crit:true,high:true,med:false},exp:{ext:true,int:true}},d:["Aug 13"],status:"awaiting"},
+    {team:"papi",from:"PULL-0415",crit:{sev:{crit:true,high:false,med:false},exp:{ext:true,int:false}},d:["Jul 14","Jul 24","Aug 04"],status:"due"},
+    {team:"lake",from:"PULL-0416",crit:{sev:{crit:true,high:true,med:true},exp:{ext:false,int:true}},d:["Jul 02","Jul 30"],status:"archived"}
+  ];
+  specs.forEach(s=>{
+    const c=startCampaign(s.team,s.from,s.crit,s.d[0]);
+    c.outreach[0].sent=s.d[0];
+    for(let i=1;i<s.d.length;i++){advance(c,s.d[i]);c.outreach[c.outreach.length-1].sent=s.d[i]}
+    c.status=s.status;
+    if(s.status==="archived"){c.archivedOn="Jul 30";c.findings.forEach(f=>{if(f.status==="ACTIVE"||f.status==="NEW"){f.status="CONF";f.resolved="Jul 30"}})}
+    CAMPAIGNS.push(c);
+  });
+})();
+
+const runningFor=k=>CAMPAIGNS.find(c=>c.team===k&&c.status!=="archived");
+const lastFor=k=>CAMPAIGNS.filter(c=>c.team===k).slice(-1)[0];
+const STATUS={none:{cls:"st-none",label:"None"},ready:{cls:"st-ready",label:"Ready to send"},
+  awaiting:{cls:"st-awaiting",label:"Awaiting reply"},due:{cls:"st-due",label:"Follow-up due"},
+  archived:{cls:"st-archived",label:"Archived"}};
+
+/* ================= state ================= */
+let runIdx=0,sev={crit:true,high:true,med:false},exp={ext:true,int:true},only=null,query="";
+let staged=new Set(),inspected=null,inspectedCamp=null,tab="pool",draft={},viewing=null,vtab="email",vfilter="all",campFilter="running";
+const $=s=>document.querySelector(s);
+const SEVC={crit:"var(--crit)",high:"var(--high)",med:"var(--med)"};
+
+function poolKeys(){
+  return RUNS[runIdx].teams.filter(k=>{
+    const t=TEAMS[k];
+    if(counted(k)===0)return false;
+    if(!exp.ext&&!exp.int)return false;
+    if(exp.ext&&!exp.int&&t.ext===0)return false;
+    if(exp.int&&!exp.ext&&t.int===0)return false;
+    if(query&&!t.name.toLowerCase().includes(query))return false;
+    if(only==="nocamp"&&runningFor(k))return false;
+    if(only==="due"&&(!runningFor(k)||runningFor(k).status!=="due"))return false;
+    return true;
+  });
+}
+
+/* ================= render ================= */
+function renderRuns(){
+  $("#runList").innerHTML=RUNS.map((r,i)=>{
+    const c=critText(r);
+    return `<button class="run ${i===runIdx?'sel':''}" data-run="${i}">
+      <div class="run-top"><span class="run-id">${r.id}</span>
+      ${r.latest?'<span class="latest">Latest</span>':`<span class="run-count">${r.teams.length} teams</span>`}</div>
+      <div class="run-date">${r.date}</div>
+      <div class="run-crit">${[...c.sev,...c.exp].map(x=>`<span class="tag">${x}</span>`).join("")}</div></button>`;
+  }).join("");
+}
+
+function deltaBar(counts,h){
+  const order=["ACTIVE","NEW","CONF","ASSUM","OOS"];
+  const tot=order.reduce((a,k)=>a+counts[k],0)||1;
+  return `<div class="${h||'delta'}">${order.filter(k=>counts[k]>0).map(k=>
+    `<i style="background:${ST_COL[k]};flex:${counts[k]}" title="${ST[k]}: ${counts[k]}"></i>`).join("")}</div>`;
+}
+function deltaLegend(counts){
+  const order=["ACTIVE","NEW","CONF","ASSUM","OOS"];
+  return `<div class="dlegend">${order.filter(k=>counts[k]>0).map(k=>
+    `<span class="dl"><i style="background:${ST_COL[k]}"></i>${counts[k]} ${ST[k].toLowerCase()}</span>`).join("")}</div>`;
+}
+
+function renderPool(){
+  const keys=poolKeys();
+  $("#poolRows").innerHTML=keys.length?keys.map(k=>{
+    const t=TEAMS[k],f=t.findings,c=runningFor(k)||lastFor(k);
+    const st=c?STATUS[c.status]:STATUS.none;
+    const parts=[["crit",f.crit],["high",f.high],["med",f.med]].filter(([s])=>sev[s]);
+    const lo=c?c.outreach[c.outreach.length-1]:null;
+    return `<div class="row ${staged.has(k)?'staged':''} ${inspected===k?'insp':''}" data-team="${k}">
+      <button class="cb ${staged.has(k)?'on':''}" data-stage="${k}" aria-label="Stage ${t.name}"><svg width="9" height="7" viewBox="0 0 10 8" fill="none" stroke="#fff" stroke-width="2"><path d="M1 4l2.5 2.5L9 1"/></svg></button>
+      <div><div class="tname">${t.name}</div><div class="towner mono">${t.owner}</div></div>
+      <div class="spine"><div class="spine-bar">${parts.map(([s,n])=>`<i style="background:${SEVC[s]};flex:${Math.max(n,.6)}"></i>`).join("")}</div>
+        <div class="spine-nums">${parts.map(([s,n])=>`<span class="sv-${s}"><b>${n}</b></span>`).join("")}</div></div>
+      <div class="expo">${exp.ext?`<span class="ext">EXT ${t.ext}</span>`:""}${exp.int?`<span>INT ${t.int}</span>`:""}</div>
+      <div><div class="status ${st.cls}"><i class="pip"></i>${st.label}</div>${c?`<div class="cid">${c.id} · cycle ${c.cycle}</div>`:""}</div>
+      <div class="lastc">${lo?(lo.sent||"not sent"):"—"}</div></div>`;
+  }).join(""):`<div style="padding:44px 24px;text-align:center;color:var(--ink-3)">
+    <div class="eyebrow" style="margin-bottom:8px">No teams match</div>
+    <div style="font-size:12.5px">Widen the severity or exposure filters, or pick an earlier pull.</div></div>`;
+
+  const ready=CAMPAIGNS.filter(c=>c.status==="ready").length;
+  $("#tabPoolN").textContent=keys.length;
+  $("#mTeams").textContent=keys.length;
+  $("#mActive").textContent=CAMPAIGNS.filter(c=>c.status!=="archived").length;
+  $("#mReady").textContent=ready;
+  $("#mDue").textContent=CAMPAIGNS.filter(c=>c.status==="due").length;
+  const b=$("#tabCampN");b.textContent=CAMPAIGNS.filter(c=>c.status!=="archived").length;b.classList.toggle("hot",ready>0);
+  $("#stg4").classList.toggle("on",CAMPAIGNS.length>0);
+  $("#cbAll").classList.toggle("on",keys.length>0&&keys.every(k=>staged.has(k)));
+  const tot={crit:0,high:0,med:0};
+  RUNS[runIdx].teams.forEach(k=>["crit","high","med"].forEach(s=>tot[s]+=TEAMS[k].findings[s]));
+  $("#cCrit").textContent=tot.crit;$("#cHigh").textContent=tot.high;$("#cMed").textContent=tot.med;
+}
+
+function renderCamps(){
+  const list=CAMPAIGNS.filter(c=>campFilter==="archived"?c.status==="archived":c.status!=="archived");
+  $("#campRows").innerHTML=list.length?list.map(c=>{
+    const st=STATUS[c.status],o=c.outreach[c.outreach.length-1],t=tally(c);
+    const next=c.status==="ready"?"Send, then mark sent":c.status==="due"?"Generate follow-up":c.status==="archived"?"Archived "+c.archivedOn:"Follow-up scheduled";
+    return `<div class="camp-row ${inspectedCamp===c.id?'insp':''} ${c.status==="archived"?"arch":""}" data-camp="${c.id}">
+      <div><div class="tname">${TEAMS[c.team].name}</div><div class="cid">${c.id} · started ${c.locked} from ${c.from}</div></div>
+      <div class="status ${st.cls}"><i class="pip"></i>${st.label}</div>
+      <div class="last-out"><div>${o.kind==="baseline"?"Baseline notice":"Follow-up #"+(o.seq-1)} · ${o.sent_count} findings</div>
+        <div class="w">${o.sent?"sent "+o.sent:"generated "+o.gen+" · not sent"}</div></div>
+      <div><div class="prog-l" style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink-2)">
+        <span>${t.ACTIVE+t.NEW} open</span><span>${t.CONF+t.ASSUM} remediated · ${t.OOS} out</span></div>
+        ${deltaBar(t,"mini")}</div>
+      <div class="lastc" style="font-family:'IBM Plex Sans';font-size:11.5px;color:var(--ink-2)">${c.cycle} · ${next}</div></div>`;
+  }).join(""):`<div style="padding:44px 24px;text-align:center;color:var(--ink-3);font-size:12.5px">No ${campFilter} campaigns.</div>`;
+}
+
+function ledgerBlock(c){
+  return `<div class="ledger">${c.outreach.map(o=>{
+    const isBase=o.kind==="baseline";
+    return `<div class="lrow">
+      <div class="lnode ${o.sent?"":"unsent"} ${isBase?"base":""}">${isBase?"B":o.seq-1}</div>
+      <div class="lcard ${o.sent?"":"unsent"}">
+        <div class="lc-h"><span class="ttl">${isBase?"Baseline notice":"Follow-up #"+(o.seq-1)}</span>
+          <span class="dt">cycle ${o.cycle} · ${o.sent_count} sent</span></div>
+        ${deltaBar(o.counts)}${deltaLegend(o.counts)}
+        <div class="lc-files">
+          <button class="file" data-open="${c.id}|${o.seq}|email"><svg width="11" height="9" viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.3"><rect x=".7" y=".7" width="10.6" height="8.6" rx="1"/><path d="M1 1.5l5 3.6 5-3.6"/></svg>Email</button>
+          <button class="file" data-open="${c.id}|${o.seq}|sheet">${o.file}</button></div>
+        <div class="lc-act">
+          ${o.sent?`<span class="sent-mark"><svg width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4l2.5 2.5L9 1"/></svg>Marked sent ${o.sent}</span>`
+          :`<span class="unsent-mark">Generated ${o.gen} · not sent</span>
+            <button class="btn btn-w btn-s" data-marksent="${c.id}|${o.seq}">Mark as sent</button>`}
+        </div></div></div>`;
+  }).join("")}</div>`;
+}
+
+function campaignPanel(c,fromPool){
+  const t=tally(c),ct=critText(c.crit),unsent=c.outreach.some(o=>!o.sent);
+  return `
+    <div class="sect">
+      <div class="baseline">
+        <div class="bh"><span class="id">${c.id}</span><span class="lk">${c.status==="archived"?"Archived "+c.archivedOn:"Cycle "+c.cycle}</span></div>
+        <div class="kv"><span class="k">Started</span><span class="v">${c.locked} · ${c.from}</span></div>
+        <div class="kv"><span class="k">Scope criteria</span><span class="v">${ct.sev.length} sev · ${ct.exp.length} exp</span></div>
+        <div class="crit-chips">${[...ct.sev,...ct.exp].map(x=>`<span class="tag">${x}</span>`).join("")}</div>
+      </div>
+      <span class="eyebrow" style="display:block;margin-bottom:8px">Current state · ${c.findings.length} findings tracked</span>
+      <div class="state-grid">
+        <div class="sc a"><div class="n mono">${t.ACTIVE}</div><div class="l">Still active</div></div>
+        <div class="sc n"><div class="n mono">${t.NEW}</div><div class="l">New in scope this cycle</div></div>
+        <div class="sc r"><div class="n mono">${t.CONF} <span style="font-size:12px;color:var(--ink-3)">+${t.ASSUM}</span></div><div class="l">Confirmed + assumed remediated</div></div>
+        <div class="sc o"><div class="n mono">${t.OOS}</div><div class="l">Dropped out of scope</div></div>
+      </div>
+    </div>
+    <div class="sect"><span class="eyebrow">Outreach ledger · ${c.outreach.length}</span>${ledgerBlock(c)}</div>`;
+}
+
+function renderInspector(){
+  const el=$("#inspector");
+  if(tab==="camp"){
+    const c=CAMPAIGNS.find(x=>x.id===inspectedCamp);
+    if(!c){el.innerHTML=`<div class="insp-empty"><span class="eyebrow">Campaign detail</span>
+      Select a campaign to see its running ledger — every cycle, what changed, and what actually went out.</div>`;return}
+    const unsent=c.outreach.some(o=>!o.sent),t=tally(c);
+    el.innerHTML=`<div class="insp-head"><h2>${TEAMS[c.team].name}</h2>
+        <div class="sub mono">${c.id} · ${TEAMS[c.team].owner}</div></div>
+      <div class="insp-body">${campaignPanel(c)}</div>
+      <div class="insp-foot">
+        ${c.status==="archived"?`<button class="btn btn-g" style="flex:1" disabled>Archived ${c.archivedOn}</button>`
+        :unsent?`<button class="btn btn-g" style="flex:1" disabled>Mark the pending email sent first</button>`
+        :`<button class="btn btn-a" style="flex:1" data-genfu="${c.id}">Run cycle ${c.cycle+1}</button>
+          <button class="btn btn-g" data-archive="${c.id}">Complete</button>`}
+      </div>`;
+    return;
+  }
+  if(!inspected){el.innerHTML=`<div class="insp-empty"><span class="eyebrow">Inspector</span>
+    Select a team to see its findings breakdown and any campaign running against it.</div>`;return}
+  const k=inspected,t=TEAMS[k],f=t.findings,c=runningFor(k)||lastFor(k);
+  el.innerHTML=`
+    <div class="insp-head"><h2>${t.name}</h2><div class="sub mono">${t.owner} · in ${RUNS[runIdx].id}</div></div>
+    <div class="insp-body">
+      <div class="sect"><span class="eyebrow">Open findings · current scan</span>
+        <div class="kv"><span class="k">Critical</span><span class="v sv-crit">${f.crit}</span></div>
+        <div class="kv"><span class="k">High</span><span class="v sv-high">${f.high}</span></div>
+        <div class="kv"><span class="k">Medium</span><span class="v sv-med">${f.med}</span></div>
+        <div class="kv" style="border-top:1px solid var(--line-soft);margin-top:6px;padding-top:8px">
+          <span class="k">External / Internal</span><span class="v">${t.ext} / ${t.int}</span></div>
+        <div class="kv"><span class="k">Matching pool filter</span><span class="v">${counted(k)}</span></div></div>
+      ${c?campaignPanel(c,true)+`<div class="sect"><button class="btn btn-g btn-s" data-gocamp="${c.id}" style="width:100%">Open in campaigns</button></div>`
+      :`<div class="sect"><span class="eyebrow">Campaign</span>
+        <div style="font-size:12.5px;color:var(--ink-3)">No campaign. Stage this team to start one — the pull's criteria carry over as the campaign scope, and you can adjust them before locking.</div></div>`}
+    </div>
+    <div class="insp-foot">
+      <button class="btn ${staged.has(k)?'btn-g':'btn-p'}" data-stage="${k}" style="flex:1">${staged.has(k)?'Remove from tray':'Add to tray'}</button>
+    </div>`;
+}
+
+function renderTray(){
+  const el=$("#tray"),n=staged.size;
+  el.classList.toggle("empty",n===0);
+  $("#stg3").classList.toggle("on",n>0);
+  if(n===0){el.innerHTML=`<div class="tray-label"><div class="n mono" style="color:#39423F">0</div><div class="l">Staged</div></div>
+    <div class="tray-hint">Tick teams to stage them. Each new team starts its own campaign; teams already running get the next cycle instead.</div>`;return}
+  const arr=[...staged],fu=arr.filter(k=>runningFor(k)).length;
+  el.innerHTML=`<div class="tray-label"><div class="n mono">${n}</div><div class="l">Staged</div></div>
+    <div class="tray-chips">${arr.map(k=>`<div class="tchip ${runningFor(k)?'fu':''}">
+      <i class="sv" style="background:${TEAMS[k].findings.crit>0?'var(--crit)':'var(--high)'}"></i>${TEAMS[k].name}
+      <button class="x" data-unstage="${k}" aria-label="Remove">×</button></div>`).join("")}</div>
+    <div class="tray-act"><button class="btn btn-g" id="clearTray">Clear</button>
+      <button class="btn btn-a" id="openDrawer">Configure ${n-fu} new${fu?` · ${fu} follow-up`:""}</button></div>`;
+}
+function renderAll(){renderPool();renderCamps();renderInspector();renderTray()}
+
+/* ================= drawer ================= */
+function defaultCrit(){return{sev:{...sev},exp:{...exp}}}
+function openDrawer(){
+  const arr=[...staged];
+  arr.forEach(k=>{if(!draft[k])draft[k]=runningFor(k)?JSON.parse(JSON.stringify(runningFor(k).crit)):defaultCrit()});
+  const fu=arr.filter(k=>runningFor(k)).length;
+  $("#drSub").textContent=`${arr.length-fu} new campaign${arr.length-fu===1?"":"s"}${fu?` · ${fu} next-cycle follow-up${fu>1?"s":""}`:""} · scope inherited from ${RUNS[runIdx].id}`;
+  $("#drBody").innerHTML=`
+    <div class="dr-note">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--petrol)" stroke-width="1.5"><circle cx="7" cy="7" r="6"/><path d="M7 6.2v4M7 4.2v.6"/></svg>
+      <span>Locking runs the detailed pull and generates one email and one attachment per team. Nothing sends — you mark each as sent by hand. A campaign keeps running until you mark it complete.</span></div>
+    ${arr.map(k=>{
+      const rc=runningFor(k),d=draft[k],n=rc?actionable(rc):counted(k,d);
+      return `<div class="cfg ${rc?"fu":"new"}" data-cfg="${k}">
+        <div class="cfg-h"><span class="chev">›</span><span class="nm">${TEAMS[k].name}</span>
+          <span class="ct">${n} findings</span>
+          <span class="pill ${rc?"pill-fu":"pill-new"}">${rc?`Cycle ${rc.cycle+1} · ${rc.id}`:"New campaign"}</span></div>
+        <div class="cfg-b">
+          ${rc?`<div style="font-size:12px;color:var(--ink-2);margin-bottom:11px">This team already has a running campaign. The next cycle reconciles the current scan against ${rc.findings.length} tracked findings — new in-scope findings are added, resolved ones marked remediated. Scope is fixed for the life of the campaign; to change it, complete ${rc.id} and start a new one.</div>`:""}
+          <div class="crit-grid">
+            <div><span class="eyebrow" style="display:block;margin-bottom:7px">Severity</span>
+              ${[["crit","Critical"],["high","High"],["med","Medium"]].map(([s,l])=>
+                `<label class="opt"><input type="checkbox" data-crit="${k}|sev|${s}" ${d.sev[s]?"checked":""} ${rc?"disabled":""}> ${l}</label>`).join("")}</div>
+            <div><span class="eyebrow" style="display:block;margin-bottom:7px">Exposure</span>
+              ${[["ext","External"],["int","Internal"]].map(([s,l])=>
+                `<label class="opt"><input type="checkbox" data-crit="${k}|exp|${s}" ${d.exp[s]?"checked":""} ${rc?"disabled":""}> ${l}</label>`).join("")}</div>
+            <div><span class="eyebrow" style="display:block;margin-bottom:7px">Include in email</span>
+              <label class="opt"><input type="checkbox" checked> Still active</label>
+              <label class="opt"><input type="checkbox" checked> New in scope</label>
+              <label class="opt"><input type="checkbox" ${rc?"checked":""}> Remediated (for credit)</label>
+              <label class="opt"><input type="checkbox"> Out of scope</label></div>
+            <div><span class="eyebrow" style="display:block;margin-bottom:7px">Recipient</span>
+              <div class="mono" style="font-size:11.5px;padding:3px 0">${TEAMS[k].owner}</div>
+              <div class="mono" style="font-size:11.5px;color:var(--ink-3)">+ sec-notices@corp (cc)</div></div>
+          </div>
+          <div class="subjline">Subject: <b>${subjectFor(k,d,rc,n)}</b><br>Attachment: <b>${slug(TEAMS[k].name)}_${rc?`followup_c${rc.cycle+1}`:"baseline_c1"}.xlsx</b></div>
+        </div></div>`;
+    }).join("")}`;
+  const totalF=arr.reduce((a,k)=>{const rc=runningFor(k);return a+(rc?actionable(rc):counted(k,draft[k]))},0);
+  $("#drSum").innerHTML=`<b>${arr.length}</b> emails · <b>${totalF}</b> findings · <b>${arr.length-fu}</b> new baselines, <b>${fu}</b> reconciled`;
+  $("#drSend").textContent=`Lock in & generate ${arr.length}`;
+  $("#scrim").classList.add("on");$("#drawer").classList.add("on");$("#drawer").setAttribute("aria-hidden","false");
+}
+function closeDrawer(){$("#scrim").classList.remove("on");$("#drawer").classList.remove("on");$("#drawer").setAttribute("aria-hidden","true")}
+
+function subjectFor(k,crit,rc,n){
+  const t=TEAMS[k],ct=critText(rc?rc.crit:crit);
+  if(rc)return `Follow-up ${rc.cycle+1}: ${n} open security findings for ${t.name}`;
+  return `${ct.sev.join(" & ")} security findings assigned to ${t.name} — action required`;
+}
+function bodyFor(c,o){
+  const t=TEAMS[c.team],ct=critText(c.crit),first=t.owner.split(".")[0],x=o.counts;
+  if(o.kind==="baseline")
+    return `Hi ${first},\n\nOur ${c.from} scan attributes ${o.sent_count} open findings to ${t.name}, filtered to: ${ct.label}.\n\nThe attached workbook lists each finding with its asset, first-seen date, and remediation target. Critical items are due within 15 days of this notice; high within 30.\n\nThis starts a tracked campaign (${c.id}). Each follow-up will reconcile against this list: anything you close will be marked remediated, and any new finding that falls in scope will be added. You will keep getting follow-ups until we close the campaign out.\n\nReply here if any asset is misattributed and we will re-route it.\n\nSecurity Engineering`;
+  const bits=[];
+  if(x.CONF)bits.push(`${x.CONF} confirmed remediated`);
+  if(x.ASSUM)bits.push(`${x.ASSUM} no longer appearing in scans (assumed remediated, pending verification)`);
+  if(x.OOS)bits.push(`${x.OOS} dropped out of scope`);
+  if(x.NEW)bits.push(`${x.NEW} newly in scope since the last notice`);
+  return `Hi ${first},\n\nCycle ${o.cycle} update on ${c.id} for ${t.name}.\n\nSince the last notice: ${bits.join(", ")}.\n\nThat leaves ${o.sent_count} findings needing action — ${x.ACTIVE} carried over and ${x.NEW} new. The attached workbook lists every tracked finding with its current status, so you can see what we have credited as closed.\n\nScope is unchanged: ${ct.label}.\n\nSecurity Engineering`;
+}
+
+/* ================= viewer ================= */
+function openViewer(cid,seq,which){
+  const c=CAMPAIGNS.find(x=>x.id===cid),o=c.outreach.find(x=>x.seq===seq);
+  viewing={c,o};vtab=which;vfilter="all";
+  document.querySelectorAll(".v-tab").forEach(b=>b.classList.toggle("on",b.dataset.vtab===which));
+  renderViewer();$("#vscrim").classList.add("on");$("#viewer").classList.add("on");
+}
+function renderViewer(){
+  if(!viewing)return;
+  const {c,o}=viewing,t=TEAMS[c.team];
+  $("#vFile").textContent=vtab==="email"?o.file.replace(".xlsx",".eml"):o.file;
+  if(vtab==="email"){
+    $("#vBody").innerHTML=`
+      <div class="mailhead">From: <b>sec-notices@corp</b><br>To: <b>${t.owner}</b><br>
+        Subject: <b>${subjectFor(c.team,c.crit,o.kind==="baseline"?null:{...c,cycle:o.cycle-1},o.sent_count)}</b><br>
+        Attachment: <b>${o.file}</b><br>
+        Status: <b style="color:${o.sent?'var(--petrol)':'#8A5600'}">${o.sent?"marked sent "+o.sent:"generated "+o.gen+" · not sent"}</b></div>
+      <div class="mailbody">${bodyFor(c,o)}</div>`;
+  }else{
+    // findings as they stood at this cycle
+    const rows=c.findings.filter(f=>f.cycle<=o.cycle).map(f=>{
+      let s=f.status;
+      if(f.cycle===o.cycle)s="NEW";
+      else if(f.resolved&&o.cycle<c.cycle&&f.status!=="ACTIVE")s=f.status;
+      return{...f,status:s};
+    });
+    const shown=vfilter==="all"?rows:rows.filter(f=>f.status===vfilter);
+    const cnt={};rows.forEach(f=>cnt[f.status]=(cnt[f.status]||0)+1);
+    $("#vBody").innerHTML=`
+      <div class="vfilter">
+        <button class="chip ${vfilter==="all"?"on":""}" data-vf="all">All ${rows.length}</button>
+        ${["ACTIVE","NEW","CONF","ASSUM","OOS"].filter(k=>cnt[k]).map(k=>
+          `<button class="chip ${vfilter===k?"on":""}" data-vf="${k}"><i class="dot" style="background:${ST_COL[k]}"></i>${ST[k]} ${cnt[k]}</button>`).join("")}
+      </div>
+      <table class="sheet"><thead><tr>
+        <th>Finding</th><th>Status</th><th>Severity</th><th>Asset</th><th>Title</th><th>Exposure</th><th>First seen</th><th>Due</th></tr></thead>
+        <tbody>${shown.map(r=>`<tr><td class="mono">${r.id}</td>
+          <td><span class="stat ${ST_CLS[r.status]}">${ST[r.status]}</span></td>
+          <td class="sv-${r.sev==="Critical"?"crit":r.sev==="High"?"high":"med"}" style="font-weight:600">${r.sev}</td>
+          <td>${r.asset}</td><td style="white-space:normal">${r.title}</td>
+          <td>${r.exp}</td><td>${r.seen}</td><td>${r.due}</td></tr>`).join("")}</tbody></table>
+      <div class="sheet-note">${c.id} · cycle ${o.cycle} · generated ${o.gen}. Rows carry the status the backend assigned when this cycle ran; remediated and out-of-scope rows stay in the workbook so the team can see what has been credited.</div>`;
+  }
+}
+function closeViewer(){$("#vscrim").classList.remove("on");$("#viewer").classList.remove("on");viewing=null}
+
+function toast(m){$("#toastMsg").textContent=m;$("#toast").classList.add("on");
+  clearTimeout(window._t);window._t=setTimeout(()=>$("#toast").classList.remove("on"),3800)}
+function openPanel(){document.body.classList.add("insp-open")}
+function closePanel(){document.body.classList.remove("insp-open")}
+function goTab(n){tab=n;closePanel();
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===n));
+  $("#viewPool").style.display=n==="pool"?"flex":"none";
+  $("#viewCamp").style.display=n==="camp"?"flex":"none";renderInspector()}
+
+/* ================= events ================= */
+document.addEventListener("click",e=>{
+  const t=e.target;
+  const run=t.closest("[data-run]");
+  if(run){runIdx=+run.dataset.run;inspected=null;
+    sev={...RUNS[runIdx].sev};exp={...RUNS[runIdx].exp};draft={};
+    document.querySelectorAll("[data-sev]").forEach(b=>b.classList.toggle("on",sev[b.dataset.sev]));
+    document.querySelectorAll("[data-exp]").forEach(b=>b.classList.toggle("on",exp[b.dataset.exp]));
+    renderRuns();renderAll();return}
+  const sb=t.closest("[data-sev]");
+  if(sb){sev[sb.dataset.sev]=!sev[sb.dataset.sev];sb.classList.toggle("on");draft={};renderAll();return}
+  const eb=t.closest("[data-exp]");
+  if(eb){exp[eb.dataset.exp]=!exp[eb.dataset.exp];eb.classList.toggle("on");draft={};renderAll();return}
+  const ob=t.closest("[data-only]");
+  if(ob){const v=ob.dataset.only;only=only===v?null:v;
+    document.querySelectorAll("[data-only]").forEach(b=>b.classList.toggle("on",b.dataset.only===only));renderAll();return}
+  const cf=t.closest("[data-cf]");
+  if(cf){campFilter=cf.dataset.cf;
+    document.querySelectorAll("[data-cf]").forEach(b=>b.classList.toggle("on",b.dataset.cf===campFilter));
+    inspectedCamp=null;renderCamps();renderInspector();return}
+
+  const stg=t.closest("[data-stage]");
+  if(stg){e.stopPropagation();const k=stg.dataset.stage;staged.has(k)?staged.delete(k):staged.add(k);renderAll();return}
+  const uns=t.closest("[data-unstage]");
+  if(uns){staged.delete(uns.dataset.unstage);renderAll();return}
+  if(t.closest("#cbAll")){const keys=poolKeys();
+    keys.every(k=>staged.has(k))?keys.forEach(k=>staged.delete(k)):keys.forEach(k=>staged.add(k));renderAll();return}
+
+  const op=t.closest("[data-open]");
+  if(op){e.stopPropagation();const [cid,seq,which]=op.dataset.open.split("|");openViewer(cid,+seq,which);return}
+  const vf=t.closest("[data-vf]");
+  if(vf){vfilter=vf.dataset.vf;renderViewer();return}
+  const vt=t.closest("[data-vtab]");
+  if(vt){vtab=vt.dataset.vtab;document.querySelectorAll(".v-tab").forEach(b=>b.classList.toggle("on",b===vt));renderViewer();return}
+  if(t.closest("#vClose")||t.closest("#vscrim")){closeViewer();return}
+  if(t.closest("#mobClose")){closePanel();return}
+
+  const camp=t.closest("[data-camp]");
+  if(camp){inspectedCamp=camp.dataset.camp;openPanel();renderCamps();renderInspector();return}
+  const row=t.closest("[data-team]");
+  if(row){inspected=row.dataset.team;openPanel();renderPool();renderInspector();return}
+  const go=t.closest("[data-gocamp]");
+  if(go){inspectedCamp=go.dataset.gocamp;
+    const c=CAMPAIGNS.find(x=>x.id===inspectedCamp);campFilter=c.status==="archived"?"archived":"running";
+    document.querySelectorAll("[data-cf]").forEach(b=>b.classList.toggle("on",b.dataset.cf===campFilter));
+    goTab("camp");openPanel();renderCamps();return}
+  const tb=t.closest("[data-tab]");if(tb){goTab(tb.dataset.tab);return}
+
+  if(t.closest("#openDrawer")){openDrawer();return}
+  if(t.closest("#clearTray")){staged.clear();draft={};renderAll();return}
+  if(t.closest("#drClose")||t.closest("#drCancel")||t.closest("#scrim")){closeDrawer();return}
+  const cfgH=t.closest(".cfg-h");if(cfgH){cfgH.parentElement.classList.toggle("open");return}
+
+  const ms=t.closest("[data-marksent]");
+  if(ms){const [cid,seq]=ms.dataset.marksent.split("|");
+    const c=CAMPAIGNS.find(x=>x.id===cid),o=c.outreach.find(x=>x.seq===+seq);
+    o.sent=TODAY;c.status="awaiting";renderAll();renderCamps();
+    toast(`${TEAMS[c.team].name} — ${o.kind==="baseline"?"baseline notice":"follow-up #"+(o.seq-1)} marked sent ${TODAY}`);return}
+
+  const gf=t.closest("[data-genfu]");
+  if(gf){const c=CAMPAIGNS.find(x=>x.id===gf.dataset.genfu),x=advance(c,TODAY);
+    renderAll();renderCamps();
+    toast(`Cycle ${c.cycle} reconciled — ${x.CONF+x.ASSUM} remediated, ${x.NEW} new in scope, ${x.ACTIVE+x.NEW} to send`);return}
+
+  const ar=t.closest("[data-archive]");
+  if(ar){const c=CAMPAIGNS.find(x=>x.id===ar.dataset.archive);
+    c.status="archived";c.archivedOn=TODAY;renderAll();renderCamps();
+    toast(`${c.id} completed and archived — ${TEAMS[c.team].name} can start a new campaign`);return}
+
+  if(t.closest("#drSend")){
+    const arr=[...staged];let made=0,fus=0;
+    arr.forEach(k=>{const rc=runningFor(k);
+      if(rc){advance(rc,TODAY);fus++}
+      else{CAMPAIGNS.push(startCampaign(k,RUNS[runIdx].id,draft[k]||defaultCrit(),TODAY));made++}});
+    staged.clear();draft={};closeDrawer();campFilter="running";
+    document.querySelectorAll("[data-cf]").forEach(b=>b.classList.toggle("on",b.dataset.cf==="running"));
+    goTab("camp");renderAll();renderCamps();
+    toast(`${made} campaign${made===1?"":"s"} started${fus?` · ${fus} cycle${fus>1?"s":""} reconciled`:""} — review and mark sent`);
+    return}
+});
+document.addEventListener("change",e=>{
+  const c=e.target.closest("[data-crit]");
+  if(c){const [k,grp,key]=c.dataset.crit.split("|");draft[k][grp][key]=c.checked;
+    const card=c.closest(".cfg"),n=counted(k,draft[k]);
+    card.querySelector(".ct").textContent=`${n} findings`;
+    const p=card.querySelector(".pill");p.className="pill pill-edit";p.textContent="Custom scope";
+    card.querySelector(".subjline").innerHTML=`Subject: <b>${subjectFor(k,draft[k],null,n)}</b><br>Attachment: <b>${slug(TEAMS[k].name)}_baseline_c1.xlsx</b>`;
+    const tot=[...staged].reduce((a,x)=>{const rc=runningFor(x);return a+(rc?actionable(rc):counted(x,draft[x]||defaultCrit()))},0);
+    const fu=[...staged].filter(x=>runningFor(x)).length;
+    $("#drSum").innerHTML=`<b>${staged.size}</b> emails · <b>${tot}</b> findings · <b>${staged.size-fu}</b> new baselines, <b>${fu}</b> reconciled`;
+  }
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(viewing){closeViewer()}else if(document.querySelector("#drawer.on")){closeDrawer()}else{closePanel()}}});
+$("#q").addEventListener("input",e=>{query=e.target.value.toLowerCase().trim();renderPool()});
+renderRuns();renderAll();
+</script>
+</body>
+</html>
